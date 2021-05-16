@@ -1,28 +1,43 @@
-from main_screen import MainScreen
+#!/usr/bin/python3
+'''
+file        : world.py
+description : This file manage all game worl stuff.
+author      : remi.boivin@epitech.eu
+'''
+
+from world import World
 import pygame
 
-# (width, height) = (1600, 1600)
-screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
-# screen = pygame.display.set_mode((width, height))
-pygame.display.flip()
-running = True
+if __name__ == "__main__":
+    pygame.font.init()
+    lost_font = pygame.font.SysFont("comicsans", 60)
+    screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+    running = True
+    key = False
+    scene = World(screen)
+    clock = pygame.time.Clock()
+    pause = False
+    x, y = screen.get_size()
 
-main_screen = MainScreen(["Quit", "Continue", "New Game"])
-main_screen.aff_menu(screen, 750, 700)
-key = False
-while running:
-  for event in pygame.event.get():
-    if event.type == pygame.QUIT:
-      running = False
-    elif event.type == pygame.KEYDOWN:
-        if event.key == pygame.K_ESCAPE:
-          running = False
-        elif key == False and event.key == pygame.K_n: 
-        	key = True
-        elif key == False and event.key == pygame.K_c:
-          key = True
-        elif event.key == pygame.K_q:
-          running = False
-        if key == True:
-          screen.fill((0,0,0))
-  pygame.display.flip()
+    scene.start(x, y)
+    while running:
+        clock.tick(60)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    running = False
+        if scene.update(x, y) == 0:
+            lost_label = lost_font.render("You Lost!!", 1, (255, 255, 255))
+            screen.blit(lost_label, (y / 2 - lost_label.get_width() / 2, 350))
+            pause = True
+        while pause:
+            e = pygame.event.get()
+            for ev in e:
+                if ev.type == pygame.QUIT or ev.key == pygame.K_ESCAPE:
+                    pause = False
+                    running = False
+
+            pygame.display.update()
+        pygame.display.update()

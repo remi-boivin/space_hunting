@@ -5,6 +5,7 @@ description : This file contain methods for all kind of entities.
 author      : remi.boivin@epitech.eu
 '''
 
+
 class Entity():
     """
         The class will contain all methods for all kind of entities.
