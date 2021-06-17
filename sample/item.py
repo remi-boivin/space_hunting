@@ -12,6 +12,7 @@ class Item():
         self.img_item = load(img)
         self.mask = from_surface(self.img_item)
         self.health = 100
+        self.max_health = 100
         self.last = pygame.time.get_ticks()
         # self.explosion = [
         #     "assets/explosion/explosion_1.png",
@@ -66,6 +67,12 @@ class Item():
             return True
         else:
             return False
+    def set_damage(self, damage=1):
+        if self.health - damage >= 0:
+            self.health -= damage
+    
+    def get_health(self):
+        return self.health
 
     def set_position(self, position):
         if position > (0, 0):

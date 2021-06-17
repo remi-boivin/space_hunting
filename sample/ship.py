@@ -6,25 +6,23 @@ author      : remi.boivin@epitech.eu
 '''
 
 import pygame
-from laser import Laser
 from random import randrange
-from item import Item
+from entity import Entity
 import os
 from explosion import Explosion
+from heart import Heart
 
-class Ship(Item):
+class Ship(Entity):
 
-    def __init__(self, ship, position=(800, 900)):
-        super().__init__(ship, position)
-        self.vel = 6
-        self.lasers = []
-        self.COOLDOWN = 30
-        self.cool_down_counter = 0
+    def __init__(self, ship, position=(800, 900), velocity=6):
+        super().__init__(ship, position, velocity)
         self.score = 0
-        self.max_health = 100
-        self.shield = 30
-        self.max_shield = 30
         self.explosion = Explosion((-800, -900), 23)
+        self.hearts = []
+        position = (128, 64)
+        for i in range(3):
+            self.hearts.append(Heart('assets/make_tileset/hearth.png', (position)))
+            position = (position[0] + 64, position[1])
 
     def move(self, screen):
         posX, posY = self.position
@@ -32,23 +30,23 @@ class Ship(Item):
         keys = pygame.key.get_pressed()
         width, height = screen.get_size()
         if keys[pygame.K_LEFT]:
-            if posX - self.vel > 0:
-                posX -= self.vel
+            if posX - self.velocity > 0:
+                posX -= self.velocity
         elif keys[pygame.K_RIGHT]:
-            if posX + self.vel < width - width_img:
-                posX += self.vel
+            if posX + self.velocity < width - width_img:
+                posX += self.velocity
         elif keys[pygame.K_UP]:
-            if posY - self.vel > 0:
-                posY -= self.vel
+            if posY - self.velocity > 0:
+                posY -= self.velocity
         elif keys[pygame.K_DOWN]:
-            if posY + self.vel < height - (height_img + 40):
-                posY += self.vel
+            if posY + self.velocity < height - (height_img + 40):
+                posY += self.velocity
         self.set_position((posX, posY))
 
-    def move_lasers(self, vel, objs, screen):
+    def move_lasers(self, velocity, objs, shields):
         self.cooldown()
         for laser in self.lasers:
-            laser.move(vel)
+            laser.move(velocity)
             if laser.off_screen(950):
                 self.lasers.remove(laser)
             for obj in objs:
@@ -60,81 +58,25 @@ class Ship(Item):
                     if obj.health > 0:
                         obj.health -= 10
                     else:
-                        self.score += 2
+                        self.score += obj.get_score()
                         self.explosion = Explosion(obj.position, 23)
 
                         obj.__del__()
                         objs.remove(obj)
+            for shield in shields:
+                if laser.collision(shield):
+                        try:
+                            self.lasers.remove(laser)
+                        except BaseException:
+                            print("exeption catched")
 
-    def health_bar(self, window):
-        pygame.draw.rect(
-            window,
-            (255,
-             0,
-             0),
-            (self.position[0],
-             self.position[1] +
-             self.img_item.get_height() +
-             30,
-             self.img_item.get_width(),
-             10))
-        pygame.draw.rect(window,
-                         (0,
-                          245,
-                          0),
-                         (self.position[0],
-                          self.position[1] + self.img_item.get_height() + 30,
-                          self.img_item.get_width() * (self.health / self.max_health),
-                          12))
-
-    def shield_bar(self, window):
-        pygame.draw.rect(
-            window,
-            (255,
-             0,
-             0),
-            (self.position[0],
-             self.position[1] +
-             self.img_item.get_height() +
-             10,
-             self.img_item.get_width(),
-             10))
-        pygame.draw.rect(window,
-                         (0,
-                          0,
-                          255),
-                         (self.position[0],
-                          self.position[1] + self.img_item.get_height() + 10,
-                          self.img_item.get_width() * (self.shield / self.max_shield),
-                          12))
-
-    def cooldown(self):
-        if self.cool_down_counter >= self.COOLDOWN:
-            self.cool_down_counter = 0
-        elif self.cool_down_counter > 0:
-            self.cool_down_counter += 1
-
-    def draw_lasers(self, window):
-        for laser in self.lasers:
-            laser.draw(window)
-
-    def shoot(self, img='assets/pixel_laser_red.png'):
-        if self.cool_down_counter == 0:
-            position = self.set_center(self.img_item, pygame.image.load(img))
-            self.lasers.append(Laser(position, img))
-            self.cool_down_counter = 1
-
-    def is_death(self):
-        if self.health <= 0:
-            return True
 
     def ship_collisions(self, objs):
         for obj in objs:
             if self.collision(obj):
                 obj.__del__()
                 objs.remove(obj)
-                self.health -= (50 - self.shield)
-                self.shield = 0
+                self.health -= 50
 
     # def __del__(self):
         # super().__del__()
@@ -142,6 +84,3 @@ class Ship(Item):
         # del self.COOLDOWN
         # del self.cool_down_counter
         # del self.health
-        # del self.max_health
-        # del self.shield
-        # del self.max_shield
